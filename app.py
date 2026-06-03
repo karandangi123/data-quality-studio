@@ -27,10 +27,6 @@ st.markdown("""
 st.title("🛠️ Data Quality & SQL Repair Studio")
 st.markdown("Automated data profiling and SQL generation for your messy datasets.")
 
-@st.cache_resource
-def get_db():
-    return Database()
-
 def main():
     # Define paths to our datasets
     raw_path = "data/raw/customers_raw.csv"
@@ -40,36 +36,31 @@ def main():
         st.error(f"Datasets not found. Please ensure {raw_path} and {ref_path} exist.")
         return
 
+    # To avoid Thread safety issues in Streamlit Cloud with DuckDB, 
+    # we instantiate the database fresh on every thread run.
+    db = Database()
+    try:
+        db.load_csv("raw_data", raw_path)
+        db.load_csv("ref_data", ref_path)
+    except Exception:
+        db.conn.execute("DROP TABLE IF EXISTS raw_data")
+        db.conn.execute("DROP TABLE IF EXISTS ref_data")
+        db.load_csv("raw_data", raw_path)
+        db.load_csv("ref_data", ref_path)
+
     # Load data on click
     if st.button("Start Profiling"):
-        with st.spinner("Initializing DuckDB and loading datasets..."):
-            db = get_db()
-            
-            # Load the CSV files into DuckDB tables
-            try:
-                db.load_csv("raw_data", raw_path)
-                db.load_csv("ref_data", ref_path)
-            except Exception as e:
-                # If they are already loaded, DuckDB might throw an error saying table exists.
-                # We can safely ignore it or drop them first.
-                db.conn.execute("DROP TABLE IF EXISTS raw_data")
-                db.conn.execute("DROP TABLE IF EXISTS ref_data")
-                db.load_csv("raw_data", raw_path)
-                db.load_csv("ref_data", ref_path)
-
         with st.spinner("Running Plugin Detectors..."):
             # Initialize our profiling engine which auto-discovers plugins
             profiler = DataProfiler()
             issues = profiler.profile(db.conn, "raw_data", "ref_data")
             
-            # Save issues in session state so we don't re-run every time
+            # Save issues in session state so we don't re-run profiling every time
             st.session_state['issues'] = issues
             st.session_state['profiled'] = True
-            st.session_state['db'] = db
 
     if st.session_state.get('profiled'):
         issues = st.session_state['issues']
-        db = st.session_state['db']
         
         # Top level metrics
         col1, col2, col3 = st.columns(3)
