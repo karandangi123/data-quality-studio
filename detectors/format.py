@@ -12,7 +12,7 @@ class FormatDetector(BaseDetector):
                 SELECT COUNT(*) FROM {raw_table}
                 WHERE signup_date IS NOT NULL 
                 AND CAST(signup_date AS VARCHAR) != ''
-                AND NOT regexp_matches(CAST(signup_date AS VARCHAR), '^\d{{4}}-\d{{2}}-\d{{2}}$')
+                AND NOT regexp_matches(CAST(signup_date AS VARCHAR), r'^\d{{4}}-\d{{2}}-\d{{2}}$')
             """).fetchone()[0]
             
             if invalid_dates > 0:
@@ -30,7 +30,7 @@ class FormatDetector(BaseDetector):
                 SELECT COUNT(*) FROM {raw_table}
                 WHERE phone IS NOT NULL 
                 AND CAST(phone AS VARCHAR) != ''
-                AND NOT regexp_matches(CAST(phone AS VARCHAR), '^\+\d{{2}}-\d{{10}}$')
+                AND NOT regexp_matches(CAST(phone AS VARCHAR), r'^\+\d{{2}}-\d{{10}}$')
             """).fetchone()[0]
             
             if invalid_phones > 0:
