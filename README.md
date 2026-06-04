@@ -6,40 +6,34 @@ This web application automates detecting data quality issues in raw datasets and
 
 ## 🚀 Architecture
 
-1. **Plugin-Based Profiling Engine**: The engine dynamically discovers issue detectors from the `detectors/` folder. Adding a new issue type does *not* require modifying the core engine.
-2. **DuckDB**: Used for fast in-memory analytical workloads and elegant SQL generation (`REPLACE`, `EXCLUDE`).
-3. **Streamlit**: A clean UI that allows executing the generated SQL to instantly preview the cleaned data.
+1. **Plugin-Based Profiling Engine**: Dynamically discovers issue detectors from `detectors/`. New issues can be added without modifying the engine.
+2. **DuckDB**: Powers fast in-memory analytics and elegant SQL generation (`REPLACE`, `EXCLUDE`).
+3. **Streamlit UI**: A clean dashboard rendering side-by-side **Schema-level** and **Content-level** issue reports with one-click SQL previews.
 
 ## 📁 Project Structure
 
 ```text
-├── app.py                 # Streamlit frontend dashboard
-├── engine/                # Core profiling engine and DuckDB database layer
-├── detectors/             # Modular plugin detectors (Schema, Nulls, Duplicates, Types, Domain, Format)
+├── app.py                 # Streamlit dashboard
+├── run.sh                 # Single-command startup script
+├── engine/                # Profiling engine & database layer
+├── detectors/             # Modular plugins (Schema, Nulls, Duplicates, Types, Domain, Format)
 └── data/                  # Raw and reference datasets
 ```
 
 ## 🛠️ How to Run Locally
 
-1. Clone this repository:
-   ```bash
-   git clone <your-repo-link>
-   cd data-quality-studio
-   ```
+Clone the repository and execute the setup script (requires Python 3):
 
-2. Install dependencies:
-   ```bash
-   pip install -r requirements.txt
-   ```
-
-3. Launch the Streamlit app:
-   ```bash
-   streamlit run app.py
-   ```
+```bash
+git clone <your-repo-link>
+cd data-quality-studio
+sh run.sh
+```
 
 ## 🔌 Adding a New Detector
 
-To add a new issue detector, simply create a new Python file in the `detectors/` directory inheriting from `BaseDetector`. The `DataProfiler` will automatically load it.
+Create a Python file in `detectors/` inheriting from `BaseDetector`.
+Set `level="Schema"` or `level="Content"` in the returned `Issue` objects. The `DataProfiler` will load it automatically.
 
 ## 📹 Loom Walkthrough
 
