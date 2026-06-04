@@ -62,6 +62,11 @@ def main():
     if st.session_state.get('profiled'):
         issues = st.session_state['issues']
         
+        # Check for stale session state from before our architecture updates
+        if issues and not hasattr(issues[0], 'level'):
+            st.session_state['profiled'] = False
+            st.rerun()
+            
         # Top level metrics
         col1, col2, col3 = st.columns(3)
         raw_count = db.conn.execute("SELECT COUNT(*) FROM raw_data").fetchone()[0]
