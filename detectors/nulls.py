@@ -16,6 +16,7 @@ class NullDetector(BaseDetector):
                 # DuckDB's REPLACE syntax is super elegant for fixing a single column in a SELECT *
                 sql_fix = f"SELECT * REPLACE (COALESCE(NULLIF(CAST({col} AS VARCHAR), ''), 'Unknown') AS {col}) FROM {raw_table};"
                 issues.append(Issue(
+                    level="Content",
                     category="Null Violations",
                     severity="Warning",
                     column=col,

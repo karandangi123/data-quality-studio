@@ -51,6 +51,7 @@ SELECT * REPLACE (
                 """.strip()
                 
                 issues.append(Issue(
+                    level="Content",
                     category="Out-of-Domain Values",
                     severity="Warning",
                     column=col,

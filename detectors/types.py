@@ -14,6 +14,7 @@ class TypeDriftDetector(BaseDetector):
                 if raw_type != ref_type:
                     sql_fix = f"SELECT * REPLACE (TRY_CAST({col} AS {ref_type}) AS {col}) FROM {raw_table};"
                     issues.append(Issue(
+                        level="Schema",
                         category="Type Drift",
                         severity="Critical",
                         column=col,

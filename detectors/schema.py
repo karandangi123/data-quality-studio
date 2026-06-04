@@ -16,6 +16,7 @@ class SchemaMismatchDetector(BaseDetector):
                 # We drop the extra column by selecting only the valid reference columns
                 sql_fix = f"SELECT {safe_cols} FROM {raw_table};"
                 issues.append(Issue(
+                    level="Schema",
                     category="Schema Mismatch",
                     severity="Critical",
                     column=col,
@@ -26,6 +27,7 @@ class SchemaMismatchDetector(BaseDetector):
         if missing_cols:
             for col in missing_cols:
                 issues.append(Issue(
+                    level="Schema",
                     category="Schema Mismatch",
                     severity="Critical",
                     column=col,

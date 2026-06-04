@@ -17,6 +17,7 @@ class FormatDetector(BaseDetector):
             
             if invalid_dates > 0:
                 issues.append(Issue(
+                    level="Content",
                     category="Format Inconsistencies",
                     severity="Warning",
                     column="signup_date",
@@ -35,6 +36,7 @@ class FormatDetector(BaseDetector):
             
             if invalid_phones > 0:
                 issues.append(Issue(
+                    level="Content",
                     category="Format Inconsistencies",
                     severity="Warning",
                     column="phone",

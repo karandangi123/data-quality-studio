@@ -35,6 +35,7 @@ WHERE rn=1;
             """.strip()
             
             issues.append(Issue(
+                level="Content",
                 category="Duplicate Keys",
                 severity="Critical",
                 column=pk,

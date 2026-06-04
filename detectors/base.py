@@ -8,6 +8,7 @@ class Issue:
     Represents a single data quality issue found by a detector.
     This structure is clean and easy to render in a UI.
     """
+    level: str           # "Schema" or "Content"
     category: str        # e.g., "Schema Mismatch", "Type Drift"
     severity: str        # e.g., "Critical", "Warning", "Info"
     column: str          # The column that has the issue

@@ -74,40 +74,55 @@ def main():
         st.divider()
         st.subheader("Data Quality Report")
         
-        # Group issues by category for a cleaner UI
-        issues_by_cat = {}
-        for issue in issues:
-            issues_by_cat.setdefault(issue.category, []).append(issue)
+        # Group issues by level, then category
+        schema_issues = [i for i in issues if i.level == "Schema"]
+        content_issues = [i for i in issues if i.level == "Content"]
+
+        tab1, tab2 = st.tabs([f"🏗️ Schema-Level Issues ({len(schema_issues)})", f"📝 Content-Level Issues ({len(content_issues)})"])
+
+        def render_issues(issue_list):
+            if not issue_list:
+                st.success("No issues found in this category!")
+                return
+            issues_by_cat = {}
+            for issue in issue_list:
+                issues_by_cat.setdefault(issue.category, []).append(issue)
+                
+            for category, cat_issues in issues_by_cat.items():
+                with st.expander(f"📌 {category} ({len(cat_issues)} issues)", expanded=True):
+                    for idx, issue in enumerate(cat_issues):
+                        st.markdown(f"**Column**: `{issue.column}` | **Severity**: <span class='severity-{issue.severity}'>{issue.severity}</span>", unsafe_allow_html=True)
+                        st.markdown(f"> {issue.description}")
+                        
+                        # Display the generated SQL. Streamlit handles copy-to-clipboard natively!
+                        st.code(issue.sql_fix, language="sql")
+                        
+                        # Add a preview button to run the generated SQL
+                        preview_key = f"preview_{issue.level}_{category}_{issue.column}_{idx}"
+                        if st.button(f"Preview Cleaned Data for {issue.column}", key=preview_key):
+                            try:
+                                # We limit to 5 rows for preview
+                                preview_sql = issue.sql_fix.rstrip(';')
+                                # If it's a CTE, we need to handle LIMIT carefully, but typically adding LIMIT 5 works
+                                if "SELECT * EXCLUDE" in preview_sql or "SELECT * REPLACE" in preview_sql or "SELECT" in preview_sql:
+                                    preview_df = db.execute(f"{preview_sql} LIMIT 5;")
+                                    st.success("SQL executed successfully! Here is the preview:")
+                                    st.dataframe(preview_df)
+                                else:
+                                    # For ALTER TABLE, we run it then preview the table
+                                    db.execute(preview_sql)
+                                    preview_df = db.execute("SELECT * FROM raw_data LIMIT 5;")
+                                    st.success("SQL executed successfully! Here is the preview:")
+                                    st.dataframe(preview_df)
+                            except Exception as e:
+                                st.error(f"Failed to execute SQL: {e}")
+                        st.divider()
+
+        with tab1:
+            render_issues(schema_issues)
             
-        for category, cat_issues in issues_by_cat.items():
-            with st.expander(f"📌 {category} ({len(cat_issues)} issues)", expanded=True):
-                for idx, issue in enumerate(cat_issues):
-                    st.markdown(f"**Column**: `{issue.column}` | **Severity**: <span class='severity-{issue.severity}'>{issue.severity}</span>", unsafe_allow_html=True)
-                    st.markdown(f"> {issue.description}")
-                    
-                    # Display the generated SQL. Streamlit handles copy-to-clipboard natively!
-                    st.code(issue.sql_fix, language="sql")
-                    
-                    # Add a preview button to run the generated SQL
-                    preview_key = f"preview_{category}_{issue.column}_{idx}"
-                    if st.button(f"Preview Cleaned Data for {issue.column}", key=preview_key):
-                        try:
-                            # We limit to 5 rows for preview
-                            preview_sql = issue.sql_fix.rstrip(';')
-                            # If it's a CTE, we need to handle LIMIT carefully, but typically adding LIMIT 5 works
-                            if "SELECT * EXCLUDE" in preview_sql or "SELECT * REPLACE" in preview_sql or "SELECT" in preview_sql:
-                                preview_df = db.execute(f"{preview_sql} LIMIT 5;")
-                                st.success("SQL executed successfully! Here is the preview:")
-                                st.dataframe(preview_df)
-                            else:
-                                # For ALTER TABLE, we run it then preview the table
-                                db.execute(preview_sql)
-                                preview_df = db.execute("SELECT * FROM raw_data LIMIT 5;")
-                                st.success("SQL executed successfully! Here is the preview:")
-                                st.dataframe(preview_df)
-                        except Exception as e:
-                            st.error(f"Failed to execute SQL: {e}")
-                    st.divider()
+        with tab2:
+            render_issues(content_issues)
 
 if __name__ == "__main__":
     main()
