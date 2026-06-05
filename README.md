@@ -36,5 +36,4 @@ Create a Python file in `detectors/` inheriting from `BaseDetector`.
 Set `level="Schema"` or `level="Content"` in the returned `Issue` objects. The `DataProfiler` will load it automatically.
 
 ## 📹 Loom Walkthrough
-
-[Insert Loom Video Link Here]
+[Watch the Loom Walkthrough Here](https://www.loom.com/share/5970483aab3243c999ab71941c092813)
